@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5972DCCE-DD43-4007-AEF4-3BC9930AB4EA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{685EE89E-8D82-4EDB-BB26-FAE99B48FA07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopApp", "DesktopApp\DesktopApp.csproj", "{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongmanDictionary", "LongmanDictionary\LongmanDictionary.csproj", "{8096D968-C69B-4579-94F5-6B8531B40F52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnkiConnect", "AnkiConnect\AnkiConnect.csproj", "{D864EA53-2E8C-4456-9E62-403103C2F4DF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4} = {5972DCCE-DD43-4007-AEF4-3BC9930AB4EA}
+		{8096D968-C69B-4579-94F5-6B8531B40F52} = {5972DCCE-DD43-4007-AEF4-3BC9930AB4EA}
+		{D864EA53-2E8C-4456-9E62-403103C2F4DF} = {5972DCCE-DD43-4007-AEF4-3BC9930AB4EA}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14E5022C-2FDE-4ED9-97B7-7F304CA29AA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8096D968-C69B-4579-94F5-6B8531B40F52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8096D968-C69B-4579-94F5-6B8531B40F52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8096D968-C69B-4579-94F5-6B8531B40F52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8096D968-C69B-4579-94F5-6B8531B40F52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D864EA53-2E8C-4456-9E62-403103C2F4DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D864EA53-2E8C-4456-9E62-403103C2F4DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D864EA53-2E8C-4456-9E62-403103C2F4DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D864EA53-2E8C-4456-9E62-403103C2F4DF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

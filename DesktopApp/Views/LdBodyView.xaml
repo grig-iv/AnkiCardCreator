@@ -1,0 +1,39 @@
+<UserControl
+    DataContext="{services:DISource Type=viewModels:LdBodyViewModel}"
+    d:DataContext="{d:DesignInstance Type=viewModels:LdBodyViewModel}"
+    mc:Ignorable="d"
+    x:Class="DesktopApp.Views.LdBodyView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:desktopApp="clr-namespace:DesktopApp"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:services="clr-namespace:DesktopApp.Services"
+    xmlns:viewModels="clr-namespace:DesktopApp.ViewModels"
+    xmlns:views="clr-namespace:DesktopApp.Views"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type viewModels:WordNotFoundPageViewModel}">
+            <views:WordNotFoundPageView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:WordPageViewModel}">
+            <views:WordPageView />
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <ContentControl>
+        <ContentControl.Content>
+            <Binding Path="Page.Value">
+                <Binding.TargetNullValue>
+                    <TextBlock
+                        FontSize="25"
+                        FontStyle="Italic"
+                        Foreground="Gray"
+                        HorizontalAlignment="Center"
+                        Margin="0,-12,0,0"
+                        Text="Search word..."
+                        VerticalAlignment="Center" />
+                </Binding.TargetNullValue>
+            </Binding>
+        </ContentControl.Content>
+    </ContentControl>
+</UserControl>

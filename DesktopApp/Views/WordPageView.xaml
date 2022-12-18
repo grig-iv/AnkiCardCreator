@@ -1,0 +1,138 @@
+<UserControl
+    d:DataContext="{d:DesignInstance Type=viewModels:WordPageViewModel}"
+    mc:Ignorable="d"
+    x:Class="DesktopApp.Views.WordPageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:converters="clr-namespace:DesktopApp.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ldoce="clr-namespace:LongmanDictionary.Models;assembly=LongmanDictionary"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:services="clr-namespace:DesktopApp.Services"
+    xmlns:viewModels="clr-namespace:DesktopApp.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer>
+        <Grid HorizontalAlignment="Stretch" x:Name="LayoutRoot">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock
+                FontWeight="Bold"
+                Grid.Row="0"
+                Margin="160,4,0,20"
+                Style="{DynamicResource MaterialDesignHeadline6TextBlock}"
+                Text="{Binding WordPage.Title}" />
+            <ItemsControl
+                Grid.Row="1"
+                ItemsSource="{Binding WordPage.Entries}"
+                Margin="160,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type ldoce:Entry}">
+                        <DockPanel Margin="0,0,0,25">
+                            <DockPanel.Resources>
+                                <Style TargetType="TextBlock" x:Key="PronunciationText">
+                                    <Setter Property="FontSize" Value="16" />
+                                    <Setter Property="Foreground" Value="#333333" />
+                                    <Setter Property="VerticalAlignment" Value="Bottom" />
+                                </Style>
+                            </DockPanel.Resources>
+                            <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="Bold"
+                                    Foreground="Red"
+                                    Text="{Binding Hyphenation}"
+                                    VerticalAlignment="Bottom" />
+                                <StackPanel
+                                    Margin="4,0,0,0"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding Pronunciation, Converter={converters:NullToVisibilityConverter}}">
+                                    <TextBlock Style="{StaticResource PronunciationText}" Text="/" />
+                                    <TextBlock Style="{StaticResource PronunciationText}" Text="{Binding Pronunciation}" />
+                                    <TextBlock Style="{StaticResource PronunciationText}" Text="/" />
+                                </StackPanel>
+                                <TextBlock
+                                    FontFamily="Arial"
+                                    FontSize="20"
+                                    Foreground="Red"
+                                    Margin="4,0,0,0"
+                                    Text="{Binding FrequencyLevel, Converter={converters:FrequencyLevelToCirclesConverter}}"
+                                    VerticalAlignment="Bottom"
+                                    Visibility="{Binding FrequencyLevel, Converter={converters:NullToVisibilityConverter}}" />
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Foreground="Green"
+                                    Margin="4,0,0,0"
+                                    Text="{Binding PartOfSpeech}"
+                                    VerticalAlignment="Bottom" />
+                            </WrapPanel>
+                            <ListBox ItemsSource="{Binding Senses}" SelectedItem="{Binding ElementName=LayoutRoot, Path=DataContext.SelectedSense.Value}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type ldoce:Sense}">
+                                        <DockPanel>
+                                            <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                                <Border
+                                                    Background="#f18500"
+                                                    CornerRadius="5"
+                                                    Padding="5,0"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding Signpost, Converter={converters:NullToVisibilityConverter}}">
+                                                    <TextBlock Text="{Binding Signpost}" />
+                                                </Border>
+                                                <TextBlock
+                                                    FontStyle="Italic"
+                                                    Foreground="Purple"
+                                                    Margin="3,0"
+                                                    Text="{Binding RegisterLabel}"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding RegisterLabel, Converter={converters:NullToVisibilityConverter}}" />
+                                                <TextBlock
+                                                    Margin="8"
+                                                    Text="{Binding Definition}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    FontWeight="Bold"
+                                                    Text="{Binding Synonym}"
+                                                    Visibility="{Binding Synonym, Converter={converters:NullToVisibilityConverter}}" />
+                                                <TextBlock Text="{Binding Opposition}" Visibility="{Binding Opposition, Converter={converters:NullToVisibilityConverter}}" />
+                                            </WrapPanel>
+                                            <ItemsControl ItemsSource="{Binding Examples}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type ldoce:Example}">
+                                                        <RadioButton
+                                                            Checked="OnExampleChecked"
+                                                            Content="{Binding Sentence}"
+                                                            FontSize="14"
+                                                            Foreground="Gray"
+                                                            GroupName="Examples"
+                                                            ToolTip="{Binding ProperForm}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button
+                Command="{Binding CreateCardCommand}"
+                Content="{materialDesign:PackIcon CardPlus}"
+                Grid.Row="1"
+                HorizontalAlignment="Right"
+                Margin="16"
+                Style="{DynamicResource MaterialDesignFloatingActionButton}"
+                ToolTip="Create Anki Card"
+                VerticalAlignment="Bottom"
+                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsCardCreating.Value}"
+                materialDesign:ButtonProgressAssist.Value="-1" />
+        </Grid>
+    </ScrollViewer>
+
+</UserControl>

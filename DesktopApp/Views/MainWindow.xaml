@@ -1,0 +1,39 @@
+﻿<Window
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{DynamicResource MaterialDesignFont}"
+    Height="720"
+    TextElement.FontSize="13"
+    TextElement.FontWeight="Regular"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="Auto"
+    Title="Anki Card Creator"
+    Width="800"
+    mc:Ignorable="d"
+    x:Class="DesktopApp.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:converters="clr-namespace:DesktopApp.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dialogs="clr-namespace:DesktopApp.Views.Dialogs"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:services="clr-namespace:DesktopApp.Services"
+    xmlns:viewModels="clr-namespace:DesktopApp.ViewModels"
+    xmlns:views="clr-namespace:DesktopApp.Views"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <materialDesign:DialogHost
+        DataContext="{services:DISource Type=services:IDialogService}"
+        DialogTheme="Inherit"
+        IsOpen="{Binding IsOpen, Mode=OneWay}"
+        d:DataContext="{d:DesignInstance Type=services:DialogService}"
+        x:Name="DialogHost">
+        <materialDesign:DialogHost.DialogContent>
+            <dialogs:DialogBaseView DataContext="{Binding DialogModel}" DialogView="{Binding ElementName=DialogHost, Path=DataContext.DialogView}" />
+        </materialDesign:DialogHost.DialogContent>
+
+        <Grid>
+            <views:MainScreenView />
+            <materialDesign:Snackbar MessageQueue="{services:DISource Type=materialDesign:ISnackbarMessageQueue}" />
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>
