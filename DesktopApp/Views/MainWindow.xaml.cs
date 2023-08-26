@@ -1,16 +1,16 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using Prism.Regions;
 
 namespace DesktopApp.Views
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow 
     {
-        public MainWindow()
+        public MainWindow(IRegionManager regionManager)
         {
             InitializeComponent();
+            regionManager.RegisterViewWithRegion<HeaderView>(RegionNames.HeaderRegion);
+            regionManager.RegisterViewWithRegion<StartPageView>(RegionNames.ContentRegion);
+            regionManager.RegisterViewWithRegion<WordPageView>(RegionNames.ContentRegion);
+            regionManager.RegisterViewWithRegion<WordNotFoundPageView>(RegionNames.ContentRegion);
         }
     }
 }

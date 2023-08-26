@@ -1,33 +1,48 @@
 using System.Reactive.Disposables;
-using System.Windows;
-using System.Windows.Input;
+using System.Reactive.Linq;
 using DesktopApp.ViewModels;
 using ReactiveUI;
 
 namespace DesktopApp.Views;
 
-public partial class MainScreenView
+public partial class HeaderView
 {
-    public MainScreenView()
+    public HeaderView()
     {
         InitializeComponent();
-        SearchTextBox.Focus();
+        ViewModel = (HeaderViewModel) DataContext;
 
-        this.WhenActivated(disposableRegistration =>
+        this.WhenActivated(disposables =>
         {
+            SearchTextBox.Focus();
+
+            this.Bind(
+                    ViewModel,
+                    viewModel => viewModel.Word,
+                    view => view.SearchTextBox.Text)
+                .DisposeWith(disposables);
+
+            this.WhenAnyValue(x => x.SearchTextBox.Text)
+                .Select(string.IsNullOrWhiteSpace)
+                .BindTo(this, x => x.PlaceHolder.Visibility);
+
             this.OneWayBind(
                     ViewModel,
                     viewModel => viewModel.IsSearching,
                     view => view.SearchIndicator.Visibility)
-                .DisposeWith(disposableRegistration);
+                .DisposeWith(disposables);
+
+            this.BindCommand(
+                    ViewModel,
+                    viewModel => viewModel.SearchCommand,
+                    view => view.SearchButton)
+                .DisposeWith(disposables);
+
+            this.BindCommand(
+                    ViewModel,
+                    viewModel => viewModel.OpenLdoceCommand,
+                    view => view.LogmanButton)
+                .DisposeWith(disposables);
         });
-    }
-
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        base.OnKeyDown(e);
-
-        if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
-            ((MainScreenViewModel) DataContext).Word = Clipboard.GetText();
     }
 }

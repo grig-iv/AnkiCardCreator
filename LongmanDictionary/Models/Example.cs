@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using CSharpFunctionalExtensions;
 using HtmlAgilityPack;
 using LongmanDictionary.Utils;
-using Optional.Collections;
-using Optional.Unsafe;
 
 namespace LongmanDictionary.Models;
 
@@ -13,9 +12,9 @@ public record Example
     {
         ProperForm = exampleNode
             .SelectNodes("//span[@class='PROPFORM'] | //span[@class='PROPFORMPREP']")
-            ?.FirstOrNone(node => node.ParentNode.ChildNodes.Contains(exampleNode))
-            .Map(node => node.InnerPrettyText())
-            .ValueOrDefault();
+            ?.TryFirst(node => node.ParentNode.ChildNodes.Contains(exampleNode))
+            .Select(node => node.InnerPrettyText())
+            .GetValueOrDefault();
         
         Sentence = exampleNode.InnerPrettyText()!;
         

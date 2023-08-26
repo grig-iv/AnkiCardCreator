@@ -1,61 +1,69 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Windows;
+using CSharpFunctionalExtensions;
 using DesktopApp.Models;
-using DesktopApp.Services;
 using LongmanDictionary.Services;
+using MaterialDesignThemes.Wpf;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
 namespace DesktopApp.ViewModels;
 
-public class MainScreenViewModel : ReactiveObject
+public class HeaderViewModel : ReactiveObject
 {
-    public MainScreenViewModel(LdSearcher searcher)
+    public HeaderViewModel(ISnackbarMessageQueue snackbarMessageQueue, LdSearcher ldSearcher)
     {
-        searcher.WhenSearchRequested
-            .Select(r => r.Word)
-            .ToPropertyEx(this, x => x.Word);
+        ldSearcher.WhenSearchRequested
+            .Select(r => r.SearchedWord)
+            .Subscribe(w => Word = w);
+
+        ldSearcher.WhenSearchRequested
+            .SelectMany(request => Observable
+                .Return(true)
+                .Concat(request.Select(_ => false)))
+            .ToPropertyEx(this, x => x.IsSearching);
 
         this
-            .WhenAnyValue(x => Word)
-            .Select(string.IsNullOrEmpty)
-            .ToPropertyEx(this, x => x.IsSearchBoxEmpty);
-
-
-            /*
-        SearchCommand = new ReactiveCommand(Word.Select(w => !string.IsNullOrWhiteSpace(w)), false);
-        SearchCommand
-            .Select(_ => Word.Value)
-            .Merge(Word.Throttle(TimeSpan.FromSeconds(1.5)))
-            .Select(w => w.Trim().ToLower())
+            .WhenAnyValue(x => x.Word)
             .Where(w => !string.IsNullOrWhiteSpace(w))
-            .DistinctUntilChanged()
-            .Select(searcher.Search)
-            .SelectMany(r => r.Response)
-            .Subscribe(
-                _ => { },
-                ex => MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButton.OK, MessageBoxImage.Error));
+            .Throttle(TimeSpan.FromSeconds(1.5))
+            .Select(NormalizeWord!)
+            .Subscribe(world => ldSearcher.Search(world));
 
-        OpenLdoceCommand = new ReactiveCommand();
-        OpenLdoceCommand.Subscribe(() =>
-        {
-            var url = string.IsNullOrWhiteSpace(Word.Value)
-                ? LdUrls.MainPage
-                : SearchService.FormSearchQuery(Word.Value);
-            Process.Start("explorer", $"\"{url}\"");
-        });
-        */
+        OpenLdoceCommand = ReactiveCommand.Create(OpenLdoce);
+
+        SearchCommand = ReactiveCommand.Create(
+            () => ldSearcher.Search(NormalizeWord(Word!)),
+            this.WhenAnyValue(x => x.Word).Select(w => !string.IsNullOrWhiteSpace(w))
+        );
+
+        SearchCommand
+            .SelectMany(r => r.Respond)
+            .Subscribe(r => r.TapError(
+                error => snackbarMessageQueue.Enqueue($"Search failed: {error}")
+            ));
     }
 
-    public ReactiveCommand<Unit, Unit> SearchCommand { get; }
+    public ReactiveCommand<Unit, SearchRequest> SearchCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLdoceCommand { get; }
 
-    [ObservableAsProperty] public bool IsSearchBoxEmpty { get; }
     [ObservableAsProperty] public bool IsSearching { get; }
-    [ObservableAsProperty] public string Word { get; set; }
+    [Reactive] public string? Word { get; set; }
+
+    private void OpenLdoce()
+    {
+        var url = string.IsNullOrWhiteSpace(Word)
+            ? LdUrls.MainPage
+            : SearchService.FormSearchQuery(NormalizeWord(Word));
+
+        Process.Start("explorer", $"\"{url}\"");
+    }
+
+    private string NormalizeWord(string word)
+    {
+        return word.Trim().ToLowerInvariant();
+    }
 }

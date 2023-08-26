@@ -1,16 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
-using System.Windows;
 using AnkiConnect;
 using AnkiConnect.Models;
+using CSharpFunctionalExtensions;
 using LongmanDictionary.Models;
-using Optional;
-using Optional.Collections;
-using Reactive.Bindings;
 
 namespace DesktopApp.Models;
 
@@ -23,7 +17,7 @@ public class AnkiCardCreator
         _ankiConnect = new AnkiConnectClient();
     }
 
-    public async Task<Option<Exception>> CreateAsync(string word, Entry entry, Sense sense, Example? example = null)
+    public async Task<Result> CreateAsync(string word, Entry entry, Sense sense, Example? example = null)
     {
         var fields = new Dictionary<string, string>
         {
@@ -44,21 +38,36 @@ public class AnkiCardCreator
         var maybeExampleAudio = CreateAudio(example?.AudioSrc, "sentenceAudio");
         var note = new Note("My English Words", "My English Card Template", fields)
         {
-            Audio = new[] { maybeWordAudio, maybeExampleAudio }.Values().ToArray(),
+            Audio = new[] { maybeWordAudio, maybeExampleAudio }.Choose().ToArray(),
             Options = new NoteOptions { AllowDuplicate = true },
         };
 
-        var result = await _ankiConnect.AddNote(note);
-        return result.Match(_ => Option.None<Exception>(), Option.Some);
+        return await _ankiConnect.AddNoteAsync(note);
     }
 
-    private Option<Audio> CreateAudio(string? audioSource, string fieldName)
+    private Maybe<Audio> CreateAudio(string? audioSource, string fieldName)
     {
-        if (audioSource is null)
-            return Option.None<Audio>();
+        // source example:
+        // https://www.ldoceonline.com/media/english/breProns/popsicle0205.mp3?version=1.2.63
+        return audioSource
+            .AsMaybe()
+            .Where(src => !string.IsNullOrWhiteSpace(src))
+            .SelectMany(GetFileName)
+            .SelectMany(RemoveVersion)
+            .Select(filename => new Audio(audioSource!, filename, new[] {fieldName}));
+    }
 
-        var srcEndPoint = audioSource.Split("/").Last();
-        var filename = srcEndPoint.Remove(srcEndPoint.IndexOf("?"));
-        return new Audio(audioSource, filename, new[] { fieldName }).Some();
+    private Maybe<string> GetFileName(string audioSource)
+    {
+       return audioSource.Split("/").TryLast();
+    }
+
+    private Maybe<string> RemoveVersion(string audioSource)
+    {
+        // ReSharper disable once StringLastIndexOfIsCultureSpecific.1
+        var versionIndex = audioSource.LastIndexOf("?");
+        return versionIndex != -1 
+            ? audioSource.Remove(versionIndex) 
+            : Maybe<string>.None;
     }
 }

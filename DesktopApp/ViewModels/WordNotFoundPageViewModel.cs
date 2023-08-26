@@ -1,19 +1,25 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using DesktopApp.Models;
 using LongmanDictionary.Models.Pages;
-using Reactive.Bindings;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace DesktopApp.ViewModels;
 
-public class WordNotFoundPageViewModel : PageViewModel
+public class WordNotFoundPageViewModel : PageViewModel<WordNotFoundPage>
 {
-    public WordNotFoundPageViewModel(WordNotFoundPage notFoundPage, LdSearcher searcher)
+    public WordNotFoundPageViewModel(LdSearcher searcher)
+        : base(searcher)
     {
-        Suggestions = notFoundPage.SuggestionWords.Select(w => new SuggestionWordViewModel(w, searcher));
+        WhenPageLoaded
+            .Select(p => p.SuggestionWords.Select(w => new SuggestionWordViewModel(w, searcher)))
+            .ToPropertyEx(this, x => x.Suggestions);
     }
 
-    public IEnumerable<SuggestionWordViewModel> Suggestions { get; }
+    [ObservableAsProperty] public IEnumerable<SuggestionWordViewModel>? Suggestions { get; }
 
     public class SuggestionWordViewModel
     {
@@ -21,11 +27,10 @@ public class WordNotFoundPageViewModel : PageViewModel
         {
             Word = word;
 
-            SearchCommand = new ReactiveCommand();
-            SearchCommand.Subscribe(() => searcher.Search(word));
+            SearchCommand = ReactiveCommand.Create(() => searcher.Search(word));
         }
 
-        public ReactiveCommand SearchCommand { get; }
+        public ReactiveCommand<Unit, SearchRequest> SearchCommand { get; }
 
         public string Word { get; }
     }

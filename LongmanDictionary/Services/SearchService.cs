@@ -1,6 +1,6 @@
+using CSharpFunctionalExtensions;
 using HtmlAgilityPack;
 using LongmanDictionary.Models.Pages;
-using Optional;
 
 namespace LongmanDictionary.Services;
 
@@ -21,20 +21,15 @@ public class SearchService
         return string.Format(SearchQuery, searchRequest);
     }
 
-    public async Task<Option<AbstractPage, Exception>> SearchAsync(string word)
+    public async Task<Result<AbstractPage>> SearchAsync(
+        string word,
+        CancellationToken cancellationToken)
     {
-        try
+        return await Result.Try(async () =>
         {
             var queryUrl = FormSearchQuery(word);
-            var htmlPage = await _web.LoadFromWebAsync(queryUrl);
-            var page = _pageFactory.CreatePage(htmlPage);
-            return page is null 
-                ? Option.None<AbstractPage, Exception>(new Exception("Unknown page")) 
-                : Option.Some<AbstractPage, Exception>(page);
-        }
-        catch (Exception e)
-        {
-            return Option.None<AbstractPage, Exception>(e);
-        }
+            var htmlPage = await _web.LoadFromWebAsync(queryUrl, cancellationToken);
+            return _pageFactory.CreatePage(htmlPage);
+        }).Bind(x => x);
     }
 }

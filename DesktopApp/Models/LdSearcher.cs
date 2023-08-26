@@ -1,40 +1,49 @@
 using System;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
-using System.Windows;
+using System.Threading;
 using LongmanDictionary.Models.Pages;
 using LongmanDictionary.Services;
-using Reactive.Bindings;
 
 namespace DesktopApp.Models;
 
 public class LdSearcher
 {
-    private readonly Subject<SearchRequest> _searchRequested;
+    private readonly IScheduler _scheduler;
+    private readonly Subject<SearchRequest> _whenSearchRequested;
     private readonly SearchService _ldoceSearch;
+    private SearchRequest? _lastRequest;
 
-    public LdSearcher()
+    public LdSearcher(IScheduler scheduler)
     {
-        _searchRequested = new Subject<SearchRequest>();
+        _scheduler = scheduler;
+        _whenSearchRequested = new Subject<SearchRequest>();
         _ldoceSearch = new SearchService();
+        
+        WhenPageLoaded = _whenSearchRequested
+            .SelectMany(r =>r.Respond)
+            .Where(r => r.IsSuccess)
+            .Select(r => r.GetValueOrDefault());
     }
 
-    public IObservable<SearchRequest> WhenSearchRequested => _searchRequested.AsObservable();
+    public IObservable<SearchRequest> WhenSearchRequested => _whenSearchRequested.AsObservable();
+    public IObservable<AbstractPage> WhenPageLoaded { get; }
 
     public SearchRequest Search(string word)
     {
-        var response = _ldoceSearch
-            .SearchAsync(word)
-            .ToObservable()
-            .SelectMany(res => res.Match(
-                Observable.Return,
-                Observable.Throw<AbstractPage>));
+        if (_lastRequest?.SearchedWord == word && !_lastRequest.IsComplete)
+            return _lastRequest;
+        
+        _lastRequest?.Cancel();
+        
+        var cts = new CancellationTokenSource();
+        var respond = _ldoceSearch.SearchAsync(word, cts.Token);
+        var request = new SearchRequest(word, respond, cts, _scheduler);
 
-        var request = new SearchRequest(word, response);
-        _searchRequested.OnNext(request);
+        _lastRequest = request;
+        _whenSearchRequested.OnNext(request);
+        
         return request;
     }
 }
-
-public record SearchRequest(string Word, IObservable<AbstractPage> Response);

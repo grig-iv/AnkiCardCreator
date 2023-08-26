@@ -1,88 +1,81 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Concurrency;
+using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Runtime.Serialization;
-using System.Security.Cryptography.Xml;
+using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 using DesktopApp.Models;
 using LongmanDictionary.Models;
 using LongmanDictionary.Models.Pages;
 using MaterialDesignThemes.Wpf;
-using Optional;
-using Reactive.Bindings;
-using Reactive.Bindings.Extensions;
-using Reactive.Bindings.Notifiers;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace DesktopApp.ViewModels;
 
-public class WordPageViewModel : PageViewModel
+public class WordPageViewModel : PageViewModel<WordPage>
 {
     private readonly AnkiCardCreator _cardCreator;
     private readonly ISnackbarMessageQueue _snackbarMessageQueue;
 
-    public WordPageViewModel(WordPage wordPage, AnkiCardCreator cardCreator, ISnackbarMessageQueue snackbarMessageQueue)
+    public WordPageViewModel(
+        ISnackbarMessageQueue snackbarMessageQueue,
+        LdSearcher ldSearcher,
+        AnkiCardCreator cardCreator)
+        : base(ldSearcher)
     {
         _cardCreator = cardCreator;
         _snackbarMessageQueue = snackbarMessageQueue;
+        
+        WhenPageLoaded.ToPropertyEx(this, x => x.WordPage);
 
-        WordPage = wordPage;
+        this
+            .WhenAnyValue(x => x.SelectedExample)
+            .Where(example => example is not null)
+            .Select(example => WordPage!.Entries
+                .SelectMany(entry => entry.Senses)
+                .First(sense => sense.Examples.Contains(example)))
+            .Subscribe(sense => SelectedSense = sense);
 
-        IsCardCreating = new BooleanNotifier();
+        this.WhenAnyValue(x => x.SelectedSense)
+            .Where(sense => sense is not null)
+            .Select(sense => WordPage!.Entries.First(entry => entry.Senses.Contains(sense)))
+            .Subscribe(entry => SelectedEntry = entry);
 
-        SelectedExample = new ReactiveProperty<Example?>();
-
-        SelectedSense = new ReactiveProperty<Sense?>(
-            SelectedExample
-                .Where(example => example is not null)
-                .Select(example => WordPage.Entries
-                    .SelectMany(entry => entry.Senses)
-                    .First(sense => sense.Examples.Contains(example)))
+        CreateCardCommand = ReactiveCommand.CreateFromTask(
+            CreateCardExecuteAsync,
+            this
+                .WhenAnyValue(x => x.SelectedSense)
+                .Select(sense => sense is not null)
         );
-
-        SelectedEntry = new ReactiveProperty<Entry?>(
-            SelectedSense
-                .Where(sense => sense is not null)
-                .Select(sense => wordPage.Entries.First(entry => entry.Senses.Contains(sense)))
-        );
-
-        CreateCardCommand = new ReactiveCommand(SelectedSense.Select(e => e is not null));
-        CreateCardCommand.Subscribe(CreateCardExecute);
     }
 
-    public ReactiveCommand CreateCardCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateCardCommand { get; }
 
-    public BooleanNotifier IsCardCreating { get; }
+    [ObservableAsProperty] public WordPage? WordPage { get; }
+    
+    [Reactive] public bool IsCardCreating { get; private set; }
+    [Reactive] public Entry? SelectedEntry { get; set; }
+    [Reactive] public Sense? SelectedSense { get; set; }
+    [Reactive] public Example? SelectedExample { get; set; }
 
-    public ReactiveProperty<Entry?> SelectedEntry { get; }
-    public ReactiveProperty<Sense?> SelectedSense { get; }
-    public ReactiveProperty<Example?> SelectedExample { get; }
-
-    public WordPage WordPage { get; }
-
-    private void CreateCardExecute()
+    private async Task CreateCardExecuteAsync()
     {
-        IsCardCreating.TurnOn();
+        IsCardCreating = true;
 
-        var creationObs = _cardCreator
-            .CreateAsync(
-                WordPage.Title!,
-                SelectedEntry.Value!,
-                SelectedSense.Value!,
-                SelectedExample.Value)
-            .ToObservable()
-            .FirstAsync()
-            .ObserveOn(CurrentThreadScheduler.Instance);
+        var result = await Result.Try(async () =>
+            await _cardCreator.CreateAsync(
+                WordPage!.Title!,
+                SelectedEntry!,
+                SelectedSense!,
+                SelectedExample)
+        ).Bind(x => x);
 
-        creationObs.Subscribe(
-            maybeAnkiConnectEx => maybeAnkiConnectEx.Match(
-                ankiConnectEx => _snackbarMessageQueue.Enqueue($"Card creating failed. {ankiConnectEx.Message}"),
-                () => _snackbarMessageQueue.Enqueue("Card was successfully created")),
-            executeEx => _snackbarMessageQueue.Enqueue($"Fail to execute. {executeEx.Message}"));
+        result.Match(
+            () => _snackbarMessageQueue.Enqueue("Card was successfully created"),
+            error => _snackbarMessageQueue.Enqueue($"Card creation failed. {error}")
+        );
 
-        creationObs
-            .Catch(Observable.Empty<Option<Exception>>())
-            .Subscribe(_ => IsCardCreating.TurnOff());
+        IsCardCreating = false;
     }
 }

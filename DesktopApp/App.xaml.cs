@@ -1,53 +1,32 @@
-﻿using System;
-using System.Diagnostics;
-using System.Windows;
+﻿using System.Windows;
 using DesktopApp.Models;
-using DesktopApp.Services;
-using DesktopApp.ViewModels;
+using DesktopApp.Views;
 using MaterialDesignThemes.Wpf;
-using Microsoft.Extensions.DependencyInjection;
-using Reactive.Bindings;
-using Reactive.Bindings.Schedulers;
+using Prism.Ioc;
+using Prism.Unity;
+using ReactiveUI;
 
 namespace DesktopApp
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : PrismApplication
     {
-        public App()
+        protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            ConfigureServices();
-            SetReactivePropertyScheduler();
-            InitializeComponent();
+            containerRegistry
+                // services
+                .RegisterSingleton<ISnackbarMessageQueue, SnackbarMessageQueue>()
+
+                // models
+                .RegisterInstance(new LdSearcher(RxApp.MainThreadScheduler))
+                .RegisterSingleton<AnkiCardCreator>();
         }
 
-        private static void ConfigureServices()
+        protected override Window CreateShell()
         {
-            var services = new ServiceCollection();
-
-            services
-                .AddSingleton<LdSearcher>()
-                .AddSingleton<AnkiCardCreator>();
-
-            services
-                .AddSingleton<MainScreenViewModel>()
-                .AddSingleton<LdBodyViewModel>();
-
-            services
-                .AddSingleton<ISnackbarMessageQueue, SnackbarMessageQueue>()
-                .AddSingleton<IViewLocator, ViewLocator>()
-                .AddSingleton<IDialogService, DialogService>();
-
-            DISource.SetServiceProvider(
-                services.BuildServiceProvider()
-            );
-        }
-
-        private void SetReactivePropertyScheduler()
-        {
-            ReactivePropertyScheduler.SetDefault(new ReactivePropertyWpfScheduler(Dispatcher));
+            return Container.Resolve<MainWindow>();
         }
     }
 }

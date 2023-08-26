@@ -18,8 +18,8 @@ public partial class WordPageView
     {
         var radioButton = (RadioButton)sender;
         if (radioButton.IsChecked ?? false)
-            ViewModel.SelectedExample.Value = (Example)radioButton.DataContext;
+            ViewModel.SelectedExample = (Example)radioButton.DataContext;
         else
-            ViewModel.SelectedExample.Value = null;
+            ViewModel.SelectedExample = null;
     }
 }

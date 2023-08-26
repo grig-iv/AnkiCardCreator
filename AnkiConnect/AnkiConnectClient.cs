@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Net;
 using AnkiConnect.Messages;
+using CSharpFunctionalExtensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Optional;
 
 namespace AnkiConnect;
 
@@ -24,7 +23,7 @@ public class AnkiConnectClient
         };
     }
 
-    public async Task<Option<TResponse, Exception>> SendRequestAsync<TResponse>(Request request)
+    public async Task<Result<TResponse>> SendRequestAsync<TResponse>(Request request)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
 
@@ -32,9 +31,7 @@ public class AnkiConnectClient
         var httpResponse = await _client.PostAsync(AnkiConnectUri, new StringContent(jsonRequest));
         var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
         var response = JsonConvert.DeserializeObject<Response<TResponse>>(jsonResponse, _jsonSettings);
-
-        return string.IsNullOrWhiteSpace(response.Error)
-            ? Option.Some<TResponse, Exception>(response.Result!)
-            : Option.None<TResponse, Exception>(new Exception(response.Error));
+        
+        return Result.FailureIf(response.HasError, response.Result, response.Error)!;
     }
 }

@@ -8,7 +8,6 @@
     xmlns:ldoce="clr-namespace:LongmanDictionary.Models;assembly=LongmanDictionary"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:services="clr-namespace:DesktopApp.Services"
     xmlns:viewModels="clr-namespace:DesktopApp.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer>
@@ -68,7 +67,7 @@
                                     Text="{Binding PartOfSpeech}"
                                     VerticalAlignment="Bottom" />
                             </WrapPanel>
-                            <ListBox ItemsSource="{Binding Senses}" SelectedItem="{Binding ElementName=LayoutRoot, Path=DataContext.SelectedSense.Value}">
+                            <ListBox ItemsSource="{Binding Senses}" SelectedItem="{Binding ElementName=LayoutRoot, Path=DataContext.SelectedSense}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate DataType="{x:Type ldoce:Sense}">
                                         <DockPanel>
@@ -130,7 +129,7 @@
                 ToolTip="Create Anki Card"
                 VerticalAlignment="Bottom"
                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsCardCreating.Value}"
+                materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsCardCreating}"
                 materialDesign:ButtonProgressAssist.Value="-1" />
         </Grid>
     </ScrollViewer>

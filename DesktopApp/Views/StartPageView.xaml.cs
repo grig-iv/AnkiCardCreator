@@ -1,12 +1,19 @@
-﻿$HEADER$using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using Prism.Regions;
+using ReactiveUI;
 
-namespace $NAMESPACE$
+namespace DesktopApp.Views;
+
+public partial class StartPageView
 {
-    public partial class $CLASS$ : UserControl
+    public StartPageView(IRegionManager regionManager)
     {
-        public $CLASS$()
+        InitializeComponent();
+
+        this.WhenActivated(_ =>
         {
-            InitializeComponent();
-        }
+            var region = regionManager.Regions[RegionNames.ContentRegion];
+            region.Activate(this);
+        });
     }
 }

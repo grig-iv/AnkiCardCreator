@@ -1,14 +1,14 @@
 using AnkiConnect.Messages;
 using AnkiConnect.Models;
-using Optional;
+using CSharpFunctionalExtensions;
 
 namespace AnkiConnect;
 
 public static class Requests
 {
-    public static Task<Option<long, Exception>> AddNote(this AnkiConnectClient client, Note note)
+    public static async Task<Result<long>> AddNoteAsync(this AnkiConnectClient client, Note note)
     {
-        return client.SendRequestAsync<long>(
+        return await client.SendRequestAsync<long>(
             new Request("addNote") { Params = new { Note = note } }
         );
     }

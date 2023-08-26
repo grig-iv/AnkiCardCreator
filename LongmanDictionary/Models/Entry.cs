@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using CSharpFunctionalExtensions;
 using HtmlAgilityPack;
 using LongmanDictionary.Utils;
-using Optional;
-using Optional.Linq;
 
 namespace LongmanDictionary.Models;
 
@@ -22,7 +21,7 @@ public record Entry
         FrequencyLevel = entryNode
             .SelectSingleNode(".//span[@class='tooltip LEVEL']")
             .InnerPrettyText()
-            .SomeNotNull()
+            .AsMaybe()
             .Select(text => text switch
             {
                 "●○○" => FrequencyLevel.Low,
@@ -30,7 +29,7 @@ public record Entry
                 "●●●" => FrequencyLevel.High,
                 _ => FrequencyLevel.None,
             })
-            .ValueOr(FrequencyLevel.None);
+            .GetValueOrDefault();
             
         PartOfSpeech = entryNode
             .SelectSingleNode(".//span[@class='POS']")
