@@ -1,21 +1,19 @@
-<UserControl
-    DataContext="{services:DISource Type=viewModels:MainScreenViewModel}"
+<reactiveUi:ReactiveUserControl
     d:DataContext="{d:DesignInstance Type=viewModels:MainScreenViewModel}"
     d:DesignHeight="300"
     d:DesignWidth="300"
     mc:Ignorable="d"
     x:Class="DesktopApp.Views.MainScreenView"
+    x:TypeArguments="viewModels:MainScreenViewModel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:converters="clr-namespace:DesktopApp.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:DesktopApp.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:services="clr-namespace:DesktopApp.Services"
+    xmlns:reactiveUi="http://reactiveui.net"
     xmlns:viewModels="clr-namespace:DesktopApp.ViewModels"
-    xmlns:views="clr-namespace:DesktopApp.Views"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <DockPanel>
         <materialDesign:ColorZone
             DockPanel.Dock="Top"
             Height="80"
@@ -53,8 +51,7 @@
                             Margin="12,0,0,0"
                             Style="{x:Null}"
                             Text="English"
-                            VerticalAlignment="Center"
-                            Visibility="{Binding IsSearchBoxEmpty.Value, Converter={converters:BoolToVisibilityConverter}}" />
+                            VerticalAlignment="Center" />
                         <TextBox
                             Background="Transparent"
                             BorderThickness="0"
@@ -62,7 +59,7 @@
                             HorizontalAlignment="Stretch"
                             Margin="12,0,0,0"
                             Style="{x:Null}"
-                            Text="{Binding Word.Value, UpdateSourceTrigger=PropertyChanged}"
+                            Text="{Binding Word, UpdateSourceTrigger=PropertyChanged}"
                             VerticalAlignment="Center"
                             x:Name="SearchTextBox" />
                         <Button
@@ -76,11 +73,4 @@
                 </Border>
             </Grid>
         </materialDesign:ColorZone>
-        <ProgressBar
-            DockPanel.Dock="Top"
-            Height="5"
-            IsIndeterminate="True"
-            Visibility="{Binding IsSearching.IsBusy, Converter={converters:BoolToVisibilityConverter HideInsteadCollapse=True}}" />
-        <local:LdBodyView />
-    </DockPanel>
-</UserControl>
+</reactiveUi:ReactiveUserControl>
